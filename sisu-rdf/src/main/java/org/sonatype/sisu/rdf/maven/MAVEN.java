@@ -30,6 +30,8 @@ public interface MAVEN
      */
     static final String NAMESPACE = "http://maven.apache.org/artifact#";
 
+    static final String NAMESPACE_PROPERTY = "http://maven.apache.org/artifact/property#";
+
     /**
      * Artifact identity namespace.
      */

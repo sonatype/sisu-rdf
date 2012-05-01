@@ -3,12 +3,13 @@ package org.sonatype.sisu.rdf.maven;
 import static org.sonatype.sisu.rdf.Builder.literal;
 import static org.sonatype.sisu.rdf.Builder.statement;
 import static org.sonatype.sisu.rdf.maven.MavenBuilder.mavenPredicate;
+import static org.sonatype.sisu.rdf.maven.MavenBuilder.mavenProperty;
 import static org.sonatype.sisu.rdf.maven.MavenBuilder.mavenResource;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
+import java.util.Properties;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -106,6 +107,28 @@ public class MavenToRDF
             }
         }
 
+        final Properties properties = model.getProperties();
+        if ( properties != null )
+        {
+            for ( String name : properties.stringPropertyNames() )
+            {
+                if ( name.startsWith( "rdf." ) || name.startsWith( "rdf:" ) )
+                {
+                    final String propertyName = name.substring( 4 );
+                    if ( !propertyName.isEmpty() )
+                    {
+                        final String propertyValue = properties.getProperty( name );
+                        if ( propertyValue != null && !propertyValue.isEmpty() )
+                        {
+                            statements.add(
+                                statement( projectVersion, mavenProperty( propertyName ), literal( propertyValue ) )
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         return statements;
     }
 
@@ -143,7 +166,8 @@ public class MavenToRDF
     }
 
     public Collection<Statement> artifactSignature( String groupId, String artifactId, String version,
-                                                    String classifier, String extension, String algorithm, String value )
+                                                    String classifier, String extension, String algorithm,
+                                                    String value )
     {
         Collection<Statement> statements = new ArrayList<Statement>();
 
@@ -213,7 +237,7 @@ public class MavenToRDF
             for ( Statement statement : statements )
             {
                 contextualized.add( statement( statement.getSubject(), statement.getPredicate(), statement.getObject(),
-                    context ) );
+                                               context ) );
             }
         }
         return contextualized;
@@ -230,7 +254,7 @@ public class MavenToRDF
         try
         {
             return new Gav( segments[0], segments[1], segments[2], null, "pom", null, null, null, false, false, null,
-                false, null );
+                            false, null );
         }
         catch ( Exception e )
         {
@@ -371,8 +395,8 @@ public class MavenToRDF
     private Resource parent( Model model )
     {
         return mavenResource( String.format( "%s:%s:%s", model.getParent().getGroupId(),
-            model.getParent().getArtifactId(),
-            model.getParent().getVersion() ) );
+                                             model.getParent().getArtifactId(),
+                                             model.getParent().getVersion() ) );
     }
 
     private Resource dependency( Dependency dependency )
@@ -383,7 +407,7 @@ public class MavenToRDF
     private String depenencyId( Dependency dependency )
     {
         return String.format( "%s:%s:%s", dependency.getGroupId(), dependency.getArtifactId(),
-            dependency.getVersion() );
+                              dependency.getVersion() );
     }
 
     private Value dependencyLabel( Dependency dependency )
@@ -394,11 +418,13 @@ public class MavenToRDF
     private Resource dependency( Model model, Dependency dependency )
     {
         return mavenResource( String.format( "%s:%s:%s/%s:%s:%s", model.getGroupId(), model.getArtifactId(),
-            model.getVersion(),
-            dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion() ) );
+                                             model.getVersion(),
+                                             dependency.getGroupId(), dependency.getArtifactId(),
+                                             dependency.getVersion() ) );
     }
 
-    private Resource artifactUri( String groupId, String artifactId, String version, String classifier, String extension )
+    private Resource artifactUri( String groupId, String artifactId, String version, String classifier,
+                                  String extension )
     {
         return mavenResource( artifactId( groupId, artifactId, version, classifier, extension ) );
     }

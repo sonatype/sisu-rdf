@@ -48,5 +48,10 @@ public class MavenBuilder
         return resource( MAVEN.URI_NAMESPACE , id );
     }
 
+    public static URI mavenProperty( final String propertyName )
+    {
+        return predicate( MAVEN.NAMESPACE_PROPERTY, propertyName );
+    }
+
 
 }
