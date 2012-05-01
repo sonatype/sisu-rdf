@@ -1,0 +1,13 @@
+PREFIX imdb: <http://data.linkedmdb.org/resource/movie/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX wikipedia: <http://en.wikipedia.org/wiki/>
+
+ASK { ?actor imdb:actor_name "Arnold Schwarzenegger" }  
+{
+  { 
+    SERVICE <http://data.linkedmdb.org/sparql>
+      {
+        ASK { ?actor imdb:actor_name "Arnold Schwarzenegger" }
+      } 
+  }
+}

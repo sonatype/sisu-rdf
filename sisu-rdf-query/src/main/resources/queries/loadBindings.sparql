@@ -1,0 +1,8 @@
+PREFIX query: <http://sonatype.com/query#> 
+SELECT ?bindingSet ?name ?value
+WHERE { 
+   query:${timestamp} query:bindingSet ?bindingSet .
+   ?bindingSet query:binding ?binding .
+   ?binding query:name ?name .
+   ?binding query:value ?value
+}

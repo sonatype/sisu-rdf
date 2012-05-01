@@ -1,0 +1,6 @@
+PREFIX query: <http://sonatype.com/query#> 
+SELECT ?timestamp
+WHERE { 
+   query:${queryId} query:log ?log .
+   ?log query:timestamp ?timestamp
+}

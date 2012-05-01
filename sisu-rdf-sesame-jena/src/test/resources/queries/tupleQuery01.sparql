@@ -1,0 +1,26 @@
+PREFIX imdb: <http://data.linkedmdb.org/resource/movie/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX dbpo: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?birthDate ?spouseName ?movieTitle ?movieDate {
+  { SERVICE <http://dbpedia.org/sparql>
+    { SELECT ?birthDate ?spouseName WHERE {
+        ?actor rdfs:label "Arnold Schwarzenegger"@en ;
+               dbpo:birthDate ?birthDate ;
+               dbpo:spouse ?spouseURI .
+        ?spouseURI rdfs:label ?spouseName .
+        FILTER ( lang(?spouseName) = "en" )
+      }
+    }
+  }
+  { SERVICE <http://data.linkedmdb.org/sparql>
+    { SELECT ?actor ?movieTitle ?movieDate WHERE {
+      ?actor imdb:actor_name "Arnold Schwarzenegger".
+      ?movie imdb:actor ?actor ;
+             dcterms:title ?movieTitle ;
+             dcterms:date ?movieDate .
+      }
+    }
+  }
+}
