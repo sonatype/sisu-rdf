@@ -9,20 +9,22 @@ package org.sonatype.sisu.rdf.maven.internal.sp;
 
 import static java.lang.String.format;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.openrdf.model.Statement;
 import org.slf4j.Logger;
 import org.sonatype.sisu.rdf.ItemPath;
 import org.sonatype.sisu.rdf.StatementsProducer;
 import org.sonatype.sisu.rdf.StatementsProducerContext;
+import org.sonatype.sisu.rdf.maven.MavenResolver;
 import org.sonatype.sisu.rdf.maven.MavenToRDF;
-import org.sonatype.sisu.rdf.maven.ModelResolver;
 
 @Named( value = "pom" )
 @Singleton
@@ -32,13 +34,13 @@ public class POMStatementsProducer
 
     private final MavenToRDF mavenToRDF;
 
-    private final ModelResolver modelResolver;
+    private final MavenResolver modelResolver;
 
     @Inject
     private Logger logger;
 
     @Inject
-    public POMStatementsProducer( MavenToRDF mavenToRDF, ModelResolver modelResolver )
+    public POMStatementsProducer( MavenToRDF mavenToRDF, MavenResolver modelResolver )
     {
         this.mavenToRDF = mavenToRDF;
         this.modelResolver = modelResolver;
@@ -62,8 +64,26 @@ public class POMStatementsProducer
 
         try
         {
-            final Model model = modelResolver.resolve( path.file(), context.remoteRepositories() );
-            return mavenToRDF.model( model );
+            final Model model = modelResolver.resolveModel( path.file(), context.remoteRepositories() );
+
+            final Collection<Statement> statements = new ArrayList<Statement>();
+            statements.addAll( mavenToRDF.model( model ) );
+
+            try
+            {
+                final Dependency[] dependencies = modelResolver.collectDependencies(
+                    model, context.remoteRepositories()
+                );
+                statements.addAll( mavenToRDF.dependencies( model, dependencies ) );
+            }
+            catch ( Exception ignore )
+            {
+                logger.warn(
+                    format(
+                        "Could not index dependencies of [%s] because [%s]. Skipped", gav.getName(), ignore.getMessage()
+                    ) );
+            }
+            return statements;
         }
         catch ( Exception ignore )
         {

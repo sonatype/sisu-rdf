@@ -9,13 +9,17 @@ package org.sonatype.sisu.rdf.maven;
 
 import java.io.File;
 
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.building.ModelBuildingException;
 
-public interface ModelResolver
+public interface MavenResolver
 {
 
-    Model resolve( File pom, String... repositories )
-        throws ModelBuildingException;
+    Model resolveModel( File pom, String... repositories )
+        throws Exception;
+
+    Dependency[] collectDependencies( Model model, String... repositories )
+        throws Exception;
 
 }

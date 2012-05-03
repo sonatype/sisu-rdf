@@ -32,11 +32,6 @@ public class MavenToRDF
 
     public Collection<Statement> model( Model model )
     {
-        return model( model, null );
-    }
-
-    public Collection<Statement> model( Model model, String defaultLicenseUrl )
-    {
         Collection<Statement> statements = new ArrayList<Statement>();
 
         Resource project = project( model );
@@ -78,10 +73,6 @@ public class MavenToRDF
                     statements.add( statement( projectVersion, MAVEN.LICENSE, license( license.getUrl() ) ) );
                 }
             }
-        }
-        else if ( defaultLicenseUrl != null )
-        {
-            statements.add( statement( projectVersion, MAVEN.LICENSE, license( defaultLicenseUrl ) ) );
         }
 
         List<Dependency> dependencies = model.getDependencies();
@@ -126,6 +117,38 @@ public class MavenToRDF
                         }
                     }
                 }
+            }
+        }
+
+        return statements;
+    }
+
+    public Collection<Statement> dependencies( final Model model, final Dependency... dependencies)
+    {
+        Collection<Statement> statements = new ArrayList<Statement>();
+
+        Resource project = project( model );
+        Resource projectVersion = projectVersion( model );
+
+        if ( dependencies != null )
+        {
+            for ( Dependency dependency : dependencies )
+            {
+                Resource dep = dependency( model, dependency );
+                statements.add( statement( projectVersion, MAVEN.DEPENDS, dep ) );
+
+                Resource usedBy = dependency( dependency );
+                statements.add( statement( dep, RDF.TYPE, MAVEN.DEPENDENCY_TYPE ) );
+                statements.add( statement( dep, RDFS.LABEL, dependencyLabel( dependency ) ) );
+
+                statements.add( statement( dep, MAVEN.TYPE, type( dependency ) ) );
+                statements.add( statement( dep, MAVEN.SCOPE, scope( dependency ) ) );
+
+                statements.add( statement( dep, MAVEN.PROJECT, project ) );
+                statements.add( statement( dep, MAVEN.PROJECT_VERSION, projectVersion ) );
+                statements.add( statement( dep, MAVEN.DEPENDENCY, usedBy ) );
+
+                statements.add( statement( usedBy, MAVEN.USED_BY, projectVersion ) );
             }
         }
 
